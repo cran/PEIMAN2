@@ -1,0 +1,28 @@
+utils::globalVariables(
+  c(
+    'AC',
+    'OS',
+    'ID',
+    'PTM',
+    'Score',
+    'Protein',
+    'FreqinList',
+    'Sample',
+    'relFreq',
+    'Population',
+    'NES',
+    'Group',
+    'pvalue',
+    'ppvalue',
+    'ptmlist',
+    'size',
+    'Enrichment',
+    'FreqinUniprot',
+    'nMoreExtreme',
+    'logCorrectPvalue',
+    'mymean',
+    'FreqinUniProt',
+    'corrected pvalue',
+    'mod_ont'
+  )
+)
