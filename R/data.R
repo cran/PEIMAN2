@@ -65,5 +65,5 @@
 #'   \item{Score}{Check with MJ}
 #'   ...
 #' }
-#' @source \doi{molpharm.120.000210}
+#' @source \url{https://pubmed.ncbi.nlm.nih.gov/33632781/}
 'exmplData2'

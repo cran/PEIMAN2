@@ -1,33 +1,47 @@
 #' Run Protein Set Enrichment Analysis (PSEA)
 #'
-#' @description This is the main function to run protein set enrichment analysis for a list of proteins and their score.
+#' @description This is the main function to run protein set enrichment analysis
+#'   for a list of proteins and their score.
 #'
-#' @param protein A dataframe with two columns. Frist column should be protein accession code, second column is the score.
-#' @param os.name A character vector of length one with exact taxonomy name of species. If you do not know the
-#' the exact taxonomy name of species you are working with, please read \code{\link{getTaxonomyName}}.
-#' @param pexponent Enrichment weighting exponent, p. For values of p < 1, one can detect incoherent patterns
-#' in a set of protein. If one expects a small number of proteins to be coherent in a large set, then p > 1 is
-#' a good choice.
-#' @param nperm Number of permutation to estimate false discovery rate (FDR). Default value is 1000.
-#' @param p.adj.method The adjustment method to correct pvalues for multiple testing in enrichment.
-#' Run p.adjust.methods() to get a list of possible methods.
-#' @param sig.level The significance level to filter PTM (applies on adjusted p-value)
-#' @param minSize PTMs with the number of proteins below this threshold are excluded.
-#' @return Returns a list of 6:
-#' 1: A dataframe with protein set enrichment analysis (PSEA) results.
-#' Every row corresponds to a post-translational modification (PTM) pathway.
+#' @param protein A dataframe with two columns. Frist column should be protein
+#'   accession code, second column is the score.
+#' @param os.name A character vector of length one with exact taxonomy name of
+#'   species. If you do not know the the exact taxonomy name of species you are
+#'   working with, please read \code{\link{getTaxonomyName}}.
+#' @param blist The background list will be substituted with the complete set of
+#'   UniProt reviewed proteins to facilitate the analysis with a background
+#'   list. The default value is NULL. Alternatively, if a vector of UniProt
+#'   Accession Codes is provided, it will serve as the background list for the
+#'   enrichment analysis.
+#' @param pexponent Enrichment weighting exponent, p. For values of p < 1, one
+#'   can detect incoherent patterns in a set of protein. If one expects a small
+#'   number of proteins to be coherent in a large set, then p > 1 is a good
+#'   choice.
+#' @param nperm Number of permutation to estimate false discovery rate (FDR).
+#'   Default value is 1000.
+#' @param p.adj.method The adjustment method to correct pvalues for multiple
+#'   testing in enrichment. Run p.adjust.methods() to get a list of possible
+#'   methods.
+#' @param sig.level The significance level to filter PTM (applies on adjusted
+#'   p-value)
+#' @param minSize PTMs with the number of proteins below this threshold are
+#'   excluded.
+#' @return Returns a list of 6: 1: A dataframe with protein set enrichment
+#'   analysis (PSEA) results. Every row corresponds to a post-translational
+#'   modification (PTM) keyword.
 #' - PTM: PTM keyword
-#' - pval: p-value for singular enrichment analysis
-#' - pvaladj: adjusted p-value
-#' - FreqinUniProt: The frequency of PTM in UniProt
-#' - FreqinList: The frequency of PTM in the given list
-#' - ES: enrichment score
-#' - NES: enrichmnt score normalized to mean enrichment of random samples of the same size
-#' - nMoreExtreme: number of times the permuted sample resulted in a profile with a larger ES value than abs(ES)
-#' - size: Number of proteins with the PTM
-#' - Enrichment: Whether the proteins in the pathway have been enriched in the list.
-#' - AC: Uniprot accession code (AC) of proteins with each PTM.
-#' - leadingEdge:
+#' - pval: p-value obtained from singular enrichment analysis (SEA).
+#' - pvaladj: adjusted p-value. This column is the adjusted pvalues with p.adj.method methods calculated in SEA method.
+#' - FreqinPopulation: The frequency of PTM in UniProt.
+#' - FreqinSample: The frequency of PTM in the given list.
+#' - ES: enrichment score.
+#' - NES: enrichmnt score normalized to mean enrichment of random samples of the same size.
+#' - nMoreExtreme: number of times the permuted sample resulted in a profile with a larger ES value than abs(ES) of the sample.
+#' - size: Number of proteins in the list having this specific PTM.
+#' - Enrichment: Indicates if the proteins with the specific protein have been enriched in the list or not. NES positive is considered as enriched.
+#' - AC: Uniprot accession code (AC) of proteins with the specific PTM.
+#' - leadingEdge: the leading edge proteins are the proteins that show up in the ranked list at or before the point where the enrichment score (ES)
+#'   reaches its maximum deviation from zero.
 #' @export
 #'
 #' @importFrom stats p.adjust.methods
@@ -37,7 +51,7 @@
 #' # The number of permutations was reduced to 10
 #' # to accommodate CRAN policy on examples (run time <= 5 seconds).
 #' psea_res <- runPSEA(protein = exmplData2, os.name = 'Rattus norvegicus (Rat)', nperm = 10)
-runPSEA = function(protein, os.name, pexponent = 1, nperm = 1000, p.adj.method = 'fdr', sig.level = 0.05, minSize = 1){
+runPSEA = function(protein, os.name, blist = NULL, pexponent = 1, nperm = 1000, p.adj.method = 'fdr', sig.level = 0.05, minSize = 1){
 
 
   ########################################################
@@ -84,12 +98,17 @@ runPSEA = function(protein, os.name, pexponent = 1, nperm = 1000, p.adj.method =
 
 
   # Run ordinary enrichment
-  enrich <- peiman(pro = protein[,1], os = os.name, am = p.adj.method)
+  if( is.null(blist) ){
+    enrich <- peiman(pro = protein[,1], os = os.name, background = NULL, am = p.adj.method)
+  }else{
+    enrich <- peiman(pro = protein[,1], os = os.name, background = blist, am = p.adj.method)
+  }
+
 
   # Filter enrich result based on corrected p-values less than sig.level. Also filter on minSize
   enrich <- enrich[[1]] %>%
             filter(`corrected pvalue` < sig.level) %>%
-            filter(`FreqinList` >= minSize)
+            filter(`FreqinSample` >= minSize)
 
 
   # Check if any pathway exists after filtering
@@ -121,7 +140,7 @@ runPSEA = function(protein, os.name, pexponent = 1, nperm = 1000, p.adj.method =
   # Loop through all rows in enrich
   for( i in 1:total ){
 
-    # Get proteins in the i-th pathway
+    # Get proteins in the i-th PTM keyword
     pro.pathway <- unlist( str_split(enrich[i,'AC'] ,pattern = '; ') )
     size[i]     <- length(pro.pathway)
 
@@ -163,9 +182,9 @@ runPSEA = function(protein, os.name, pexponent = 1, nperm = 1000, p.adj.method =
     NES[i] <- ES[i] / mean(ES_perm)
 
     if(NES[i] >= 0){
-      Enrichment[i] = 'Significant'
+      Enrichment[i] = 'Over presented'
     }else{
-      Enrichment[i] = 'Not significant'
+      Enrichment[i] = 'Under presented'
     }
 
   }
@@ -174,8 +193,8 @@ runPSEA = function(protein, os.name, pexponent = 1, nperm = 1000, p.adj.method =
   res <- data.frame(PTM = enrich[,'PTM'],
                     pval = enrich$pvalue,
                     pvaladj = enrich$`corrected pvalue`,
-                    FreqinUniProt = enrich$`FreqinUniprot`,
-                    FreqinList    = enrich$`FreqinList`,
+                    FreqinPopulation = enrich$`FreqinPopulation`,
+                    FreqinSample    = enrich$`FreqinSample`,
                     ES = unlist(ES),
                     NES = NES,
                     nMoreExtreme = nMoreExtreme,

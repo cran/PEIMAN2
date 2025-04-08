@@ -2,7 +2,7 @@
 #' @importFrom stats phyper
 #' @importFrom stats p.adjust
 #' @importFrom dplyr arrange
-peiman <- function(pro, os, am){
+peiman <- function(pro, os, background = NULL, am){
 
   #
   # pro: A character vector of proteins
@@ -22,32 +22,43 @@ peiman <- function(pro, os, am){
 
 
   #
-  # Filter peiman database to include proteins
+  # Filter peiman database to include os specific proteins
   #
-  tempDatabase <- peiman_database %>% filter(OS == os)
+  population <- peiman_database %>% filter(OS == os)
+
+  if( !is.null(background) ){
+    population <-  population %>% filter(AC %in% background)
+
+    if( nrow(population) == 0 ){
+      stop('Filter on background list does not return any protein. Did you use the correct background list or pass the os.name correctly?')
+    }
+
+  }
+
+
 
   # Identify which proteins are available in the current version of peiman database
   # Define list of proteins that are not available in the database
   # Update the proteinList
   pro              <- unique(pro)
-  indx             <- which( pro %in% tempDatabase$AC )
+  indx             <- which( pro %in% population$AC )
   missing.protein  <- pro[-indx]
   pro              <- pro[indx]
 
 
   # Get the total number of proteins in the database (N)
   # Get the number of proteins in the sample list    (n)
-  N <- length( unique(tempDatabase$AC) )
+  N <- length( unique(population$AC) )
   n <- length(pro)
 
 
-  # Define user dataframe containing two columns:
+  # Define sample dataframe containing two columns:
   # 1. PTM: The ptm terms
-  # 2. Freq: The frequecncy of each PTM term in user's list
-  temp1 <- tempDatabase[,c(1,3)] %>% filter( AC %in% pro )
+  # 2. Freq: The frequecncy of each PTM term in sample's list
+  temp1 <- population[,c(1,3)] %>% filter( AC %in% pro )
   freq  <- table(temp1$PTM)
-  user  <- data.frame(freq)
-  colnames(user) <- c('PTM', 'Freq')
+  sample  <- data.frame(freq)
+  colnames(sample) <- c('PTM', 'Freq')
 
   # Apply getProteinperPTM() function to get the list of proteins carrying each PTM
   d <- temp1 %>% arrange(PTM) %>% group_split(PTM) %>% map( ~getProteinsperPTM(.) )
@@ -58,7 +69,7 @@ peiman <- function(pro, os, am){
   # Define uniprot dataframe containing two columns:
   # 1. PTM: The ptm terms
   # 2. The frequency of PTM term in the current version of UniProt
-  temp2   <- tempDatabase[,c(1,3)]
+  temp2   <- population[,c(1,3)]
   freq    <- table(temp2$PTM)
   uniprot <- data.frame(freq)
   colnames(uniprot) <- c('PTM', 'Freq')
@@ -67,20 +78,20 @@ peiman <- function(pro, os, am){
   # Create the enriched dataframe with the following columns:
   # 1. PTM: The ptm terms
   # 2. Freq in Uniprot: The frequency of ptm in the current version of UniProt
-  # 3. Freq in List: The frequency of ptm in the user list
+  # 3. Freq in List: The frequency of ptm in the sample list
   # 4. Sample: Number of proteins in the list
   # 5. Population: Number of proteins in the UniProt
-  enrich           <- merge(uniprot, user, by = 'PTM')
+  enrich           <- merge(uniprot, sample, by = 'PTM')
   enrich$sample    <- rep(n, nrow(enrich))
   enrich$No        <- rep(N, nrow(enrich))
-  colnames(enrich) <- c('PTM', 'FreqinUniprot', 'FreqinList', 'Sample', 'Population')
+  colnames(enrich) <- c('PTM', 'FreqinPopulation', 'FreqinSample', 'Sample', 'Population')
 
 
   # Run the hypergeometric test
   # Calculate p-value
   # Correct for multiple testing by adjusting pvalues according to am parameter
-  x <- enrich$`FreqinList`
-  m <- enrich$`FreqinUniprot`
+  x <- enrich$`FreqinSample`
+  m <- enrich$`FreqinPopulation`
   k <- n
   enrich$pvalue             <- 1 - phyper(x , m , N-m , k)
   enrich$`corrected pvalue` <- p.adjust(enrich$pvalue, method = am)

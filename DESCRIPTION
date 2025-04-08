@@ -1,25 +1,25 @@
 Package: PEIMAN2
 Title: Post-Translational Modification Enrichment, Integration, and
         Matching Analysis
-Version: 0.1.0
+Version: 1.0.0
 Authors@R: c(
  person("Mohieddin", "Jafari", role = c("aut"),email = "mohieddin.jafari@helsinki.fi"),
- person("Payman", "Nickchi", role = c("aut","cre"),email = "pnickchi@sfu.ca")
+ person("Payman", "Nickchi", role = c("aut","cre"),email = "payman.nickchi@gmail.com")
  ) 
-Description: Functions and mined database from 'UniProt' focusing on post-translational modifications to do single enrichment analysis (SEA) and protein set enrichment analysis (PSEA). Payman Nickchi, Mehdi Mirzaie, Marc Baumann, Amir Ata Saei, Mohieddin Jafari (2022) <bioRxiv:10.1101/2022.11.09.515610>.
+Description: Functions and mined database from 'UniProt' focusing on post-translational modifications to do single enrichment analysis (SEA) and protein set enrichment analysis (PSEA). Payman Nickchi, Uladzislau Vadadokhau, Mehdi Mirzaie, Marc Baumann, Amir Ata Saei, Mohieddin Jafari (2025) <doi:10.1002/pmic.202400238>.
 License: GPL (>= 3)
 Encoding: UTF-8
-RoxygenNote: 7.2.1
+RoxygenNote: 7.3.2
 VignetteBuilder: knitr
-Depends: R (>= 2.10), tidyverse
+Depends: R (>= 2.10)
 Imports: ggplot2, dplyr, glue, lifecycle, purrr, rlang, stringr,
         graphics, forcats, stats, magrittr
 Suggests: knitr, rmarkdown, testthat (>= 3.0.0)
 LazyData: true
 NeedsCompilation: no
-Packaged: 2022-11-19 02:31:43 UTC; payma
+Packaged: 2025-04-08 05:43:16 UTC; payman
 Author: Mohieddin Jafari [aut],
   Payman Nickchi [aut, cre]
-Maintainer: Payman Nickchi <pnickchi@sfu.ca>
+Maintainer: Payman Nickchi <payman.nickchi@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-11-21 10:30:02 UTC
+Date/Publication: 2025-04-08 07:00:02 UTC

@@ -11,6 +11,8 @@
 #' corrected p-value). Note that `sig.level` applies to both x and y simultaneously.
 #' @param number.rep Only plot PTM terms that occurred more than a specific number of times in UniProt database.
 #' This number is set by number.rep parameter. The default value is NULL.
+#' @param plotit a logical indicating whether you want to draw the plot (TRUE, default value) or you want to return
+#' the plot (FALSE).
 #'
 #' @return Plot.
 #'
@@ -32,8 +34,8 @@
 #'
 #' ## Integrate and match the results of two separate singular enrichment analysis
 #' plotEnrichment(x = enrich1, y = enrich2)
-#' plotEnrichment(x = enrich1, y = enrich2, number.rep = 100)
-plotEnrichment = function(x, y = NULL, sig.level = 0.05, number.rep = NULL){
+#' plotEnrichment(x = enrich1, y = enrich2, number.rep = 5)
+plotEnrichment = function(x, y = NULL, sig.level = 0.05, number.rep = NULL, plotit = TRUE){
 
   # Plot one enriched list
   if( is.null(y) ){
@@ -51,23 +53,23 @@ plotEnrichment = function(x, y = NULL, sig.level = 0.05, number.rep = NULL){
 
     data.for.plot <- x %>%
                      filter(`corrected pvalue` < sig.level) %>%
-                     mutate(relFreq = round(`FreqinList`/Sample, digits = 3),
+                     mutate(relFreq = round(`FreqinSample`/Sample, digits = 3),
                             logCorrectPvalue = round(-log(`corrected pvalue`+1e-22), digits = 3) )
 
 
 
     if( !is.null(number.rep) ){
-      data.for.plot <- data.for.plot %>% filter(`FreqinUniprot` >= number.rep)
+      data.for.plot <- data.for.plot %>% filter(`FreqinPopulation` >= number.rep)
     }
 
-    data.for.plot <- data.for.plot %>% select(PTM, logCorrectPvalue, relFreq, `FreqinList`, Sample, Population)
+    data.for.plot <- data.for.plot %>% select(PTM, logCorrectPvalue, relFreq, `FreqinSample`, Sample, Population)
 
 
     #  Change the order of PTM levels according to relFreq
     data.for.plot$PTM <- fct_reorder(data.for.plot$PTM, data.for.plot$relFreq)
 
 
-    g1 <- ggplot(data = data.for.plot, aes(x = PTM, y = relFreq, fill = logCorrectPvalue, size = `FreqinList`)) +
+    g1 <- ggplot(data = data.for.plot, aes(x = PTM, y = relFreq, fill = logCorrectPvalue, size = `FreqinSample`)) +
           geom_segment( aes(x = PTM, y = 0, xend = PTM, yend = relFreq), size = 1, col = 'grey40' ) +
           geom_point(shape = 21) +
           theme(axis.text.x  = element_text(size = 12, face = 'bold'),
@@ -80,8 +82,12 @@ plotEnrichment = function(x, y = NULL, sig.level = 0.05, number.rep = NULL){
                 ylab('Relative frequency') +
                 coord_flip()
 
+    if( plotit ){
+      plot(g1)
+    }else{
+      return(g1)
+    }
 
-    plot(g1)
 
   }
 
@@ -101,8 +107,8 @@ plotEnrichment = function(x, y = NULL, sig.level = 0.05, number.rep = NULL){
     y <- y %>% filter(`corrected pvalue` < sig.level)
 
     # Calculate relative frequency
-    x <- x %>% mutate(relFreq = round(`FreqinList`/Sample, digits = 4))
-    y <- y %>% mutate(relFreq = round(`FreqinList`/Sample, digits = 4))
+    x <- x %>% mutate(relFreq = round(`FreqinSample`/Sample, digits = 4))
+    y <- y %>% mutate(relFreq = round(`FreqinSample`/Sample, digits = 4))
 
     # Calculate log10 corrected pvalue
     x <- x %>% mutate(logCorrectPvalue = round(-log(`corrected pvalue`+1e-22), digits = 4))
@@ -113,8 +119,8 @@ plotEnrichment = function(x, y = NULL, sig.level = 0.05, number.rep = NULL){
     y <- y %>% mutate(PTM = as.character(PTM))
 
     if( !is.null(number.rep) ){
-      x <- x %>% filter(`FreqinUniprot` >= number.rep)
-      y <- y %>% filter(`FreqinUniprot` >= number.rep)
+      x <- x %>% filter(`FreqinPopulation` >= number.rep)
+      y <- y %>% filter(`FreqinPopulation` >= number.rep)
     }
 
     # Select required columns

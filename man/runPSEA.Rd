@@ -7,6 +7,7 @@
 runPSEA(
   protein,
   os.name,
+  blist = NULL,
   pexponent = 1,
   nperm = 1000,
   p.adj.method = "fdr",
@@ -15,45 +16,60 @@ runPSEA(
 )
 }
 \arguments{
-\item{protein}{A dataframe with two columns. Frist column should be protein accession code, second column is the score.}
+\item{protein}{A dataframe with two columns. Frist column should be protein
+accession code, second column is the score.}
 
-\item{os.name}{A character vector of length one with exact taxonomy name of species. If you do not know the
-the exact taxonomy name of species you are working with, please read \code{\link{getTaxonomyName}}.}
+\item{os.name}{A character vector of length one with exact taxonomy name of
+species. If you do not know the the exact taxonomy name of species you are
+working with, please read \code{\link{getTaxonomyName}}.}
 
-\item{pexponent}{Enrichment weighting exponent, p. For values of p < 1, one can detect incoherent patterns
-in a set of protein. If one expects a small number of proteins to be coherent in a large set, then p > 1 is
-a good choice.}
+\item{blist}{The background list will be substituted with the complete set of
+UniProt reviewed proteins to facilitate the analysis with a background
+list. The default value is NULL. Alternatively, if a vector of UniProt
+Accession Codes is provided, it will serve as the background list for the
+enrichment analysis.}
 
-\item{nperm}{Number of permutation to estimate false discovery rate (FDR). Default value is 1000.}
+\item{pexponent}{Enrichment weighting exponent, p. For values of p < 1, one
+can detect incoherent patterns in a set of protein. If one expects a small
+number of proteins to be coherent in a large set, then p > 1 is a good
+choice.}
 
-\item{p.adj.method}{The adjustment method to correct pvalues for multiple testing in enrichment.
-Run p.adjust.methods() to get a list of possible methods.}
+\item{nperm}{Number of permutation to estimate false discovery rate (FDR).
+Default value is 1000.}
 
-\item{sig.level}{The significance level to filter PTM (applies on adjusted p-value)}
+\item{p.adj.method}{The adjustment method to correct pvalues for multiple
+testing in enrichment. Run p.adjust.methods() to get a list of possible
+methods.}
 
-\item{minSize}{PTMs with the number of proteins below this threshold are excluded.}
+\item{sig.level}{The significance level to filter PTM (applies on adjusted
+p-value)}
+
+\item{minSize}{PTMs with the number of proteins below this threshold are
+excluded.}
 }
 \value{
-Returns a list of 6:
-1: A dataframe with protein set enrichment analysis (PSEA) results.
-Every row corresponds to a post-translational modification (PTM) pathway.
+Returns a list of 6: 1: A dataframe with protein set enrichment
+analysis (PSEA) results. Every row corresponds to a post-translational
+modification (PTM) keyword.
 \itemize{
 \item PTM: PTM keyword
-\item pval: p-value for singular enrichment analysis
-\item pvaladj: adjusted p-value
-\item FreqinUniProt: The frequency of PTM in UniProt
-\item FreqinList: The frequency of PTM in the given list
-\item ES: enrichment score
-\item NES: enrichmnt score normalized to mean enrichment of random samples of the same size
-\item nMoreExtreme: number of times the permuted sample resulted in a profile with a larger ES value than abs(ES)
-\item size: Number of proteins with the PTM
-\item Enrichment: Whether the proteins in the pathway have been enriched in the list.
-\item AC: Uniprot accession code (AC) of proteins with each PTM.
-\item leadingEdge:
+\item pval: p-value obtained from singular enrichment analysis (SEA).
+\item pvaladj: adjusted p-value. This column is the adjusted pvalues with p.adj.method methods calculated in SEA method.
+\item FreqinPopulation: The frequency of PTM in UniProt.
+\item FreqinSample: The frequency of PTM in the given list.
+\item ES: enrichment score.
+\item NES: enrichmnt score normalized to mean enrichment of random samples of the same size.
+\item nMoreExtreme: number of times the permuted sample resulted in a profile with a larger ES value than abs(ES) of the sample.
+\item size: Number of proteins in the list having this specific PTM.
+\item Enrichment: Indicates if the proteins with the specific protein have been enriched in the list or not. NES positive is considered as enriched.
+\item AC: Uniprot accession code (AC) of proteins with the specific PTM.
+\item leadingEdge: the leading edge proteins are the proteins that show up in the ranked list at or before the point where the enrichment score (ES)
+reaches its maximum deviation from zero.
 }
 }
 \description{
-This is the main function to run protein set enrichment analysis for a list of proteins and their score.
+This is the main function to run protein set enrichment analysis
+for a list of proteins and their score.
 }
 \examples{
 # We recommend at least nperm = 1000.
