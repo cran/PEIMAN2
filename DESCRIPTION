@@ -1,7 +1,7 @@
 Package: PEIMAN2
 Title: Post-Translational Modification Enrichment, Integration, and
         Matching Analysis
-Version: 1.1.0
+Version: 1.2.0
 Authors@R: c(
  person("Mohieddin", "Jafari", role = c("aut"),email = "mohieddin.jafari@helsinki.fi"),
  person("Payman", "Nickchi", role = c("aut","cre"),email = "payman.nickchi@gmail.com")
@@ -17,9 +17,9 @@ Imports: ggplot2, dplyr, glue, lifecycle, purrr, rlang, stringr,
 Suggests: knitr, rmarkdown, testthat (>= 3.0.0)
 LazyData: true
 NeedsCompilation: no
-Packaged: 2026-06-17 01:50:18 UTC; payma
+Packaged: 2026-11-08 05:13:25 UTC; payma
 Author: Mohieddin Jafari [aut],
   Payman Nickchi [aut, cre]
 Maintainer: Payman Nickchi <payman.nickchi@gmail.com>
 Repository: CRAN
-Date/Publication: 2026-06-17 06:30:10 UTC
+Date/Publication: 2026-11-08 21:40:30 UTC
